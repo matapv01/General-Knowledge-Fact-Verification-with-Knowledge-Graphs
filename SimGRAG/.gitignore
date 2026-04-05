@@ -1,0 +1,10 @@
+volumes/
+data/
+results/
+__pycache__/
+*.pyc
+*.pkl
+*.pickle
+*.bin
+*.onnx
+*.safetensors
