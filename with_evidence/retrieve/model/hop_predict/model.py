@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from transformers import AutoModelForSequenceClassification, AdamW
+from transformers import AutoModelForSequenceClassification
 from transformers import BertTokenizerFast
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
@@ -12,7 +12,7 @@ class HopPredictorManager:
         self.model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
         self.tokenizer = BertTokenizerFast.from_pretrained(model_name, do_lower_case=False)
         self.model = self.model.to(device)
-        self.optimizer = AdamW(self.model.parameters(),  lr=float(learning_rate))
+        self.optimizer = torch.optim.AdamW(self.model.parameters(),  lr=float(learning_rate))
         self.loss_fn = nn.CrossEntropyLoss()
         self.device = device
 

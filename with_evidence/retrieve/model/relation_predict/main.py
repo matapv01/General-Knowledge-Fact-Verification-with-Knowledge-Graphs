@@ -35,10 +35,10 @@ def trainer(data,relation_set, model_name, eval_batch_size,train_batch_size,max_
     model = FactKGRelationClassifier(relation_set, _model,top_k, learning_rate=5e-5)
 
     trainer = pl.Trainer(
-        precision=16,
+        precision="16-mixed",
         accelerator="gpu",
         max_epochs=max_epoch,
-        gpus=1,
+        devices=1,
     )
     trainer.fit(model, relation_data_module) 
     
@@ -60,9 +60,9 @@ def evaluator(data,relation_set, model_name, eval_batch_size,train_batch_size,ma
 
     # Test the model
     trainer = pl.Trainer(
-        precision=16,
+        precision="16-mixed",
         accelerator="gpu",
-        gpus=1,
+        devices=1,
     )
     trainer.test(model, datamodule=relation_data_module)
 

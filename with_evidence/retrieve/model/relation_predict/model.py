@@ -15,6 +15,8 @@ class FactKGRelationClassifier(pl.LightningModule):
     self.model = model
     self.top_k=top_k
     self.learning_rate = learning_rate
+    self.validation_step_outputs = []
+    self.test_step_outputs = []
 
 
   def forward(self, batch):
@@ -29,16 +31,22 @@ class FactKGRelationClassifier(pl.LightningModule):
     return {"loss": loss}
     
   def validation_step(self, batch, batch_idx):
-    return self._evaluation_step(batch) 
+    output = self._evaluation_step(batch)
+    self.validation_step_outputs.append(output)
+    return output
 
-  def validation_epoch_end(self, outputs):
-    self._evaluation_epoch_end(outputs, phase='test')
+  def on_validation_epoch_end(self):
+    self._evaluation_epoch_end(self.validation_step_outputs, phase='test')
+    self.validation_step_outputs.clear()
 
   def test_step(self, batch, batch_idx):
-    return self._evaluation_step_eval(batch) 
+    output = self._evaluation_step_eval(batch)
+    self.test_step_outputs.append(output)
+    return output
 
-  def test_epoch_end(self, outputs):
-    self._evaluation_epoch_end_eval(outputs, phase='test')
+  def on_test_epoch_end(self):
+    self._evaluation_epoch_end_eval(self.test_step_outputs, phase='test')
+    self.test_step_outputs.clear()
 
   def _evaluation_step(self, batch):
     loss, logits = self.forward(batch)
