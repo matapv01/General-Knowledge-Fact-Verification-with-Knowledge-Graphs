@@ -12,12 +12,12 @@ from datetime import datetime
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score
 import transformers
-from transformers import AdamW, AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm
 import warnings
 import time
 import re
-import wandb
+# import wandb
 import random
 import argparse
 import logging
@@ -80,15 +80,13 @@ def define_argparser():
     return args
 
 class CompDataset(Dataset):
-
     def __init__(self, df, tokenizer):
         self.pickle = df
         self.tokenizer = tokenizer
+        self.all_list = list(self.pickle)
 
     def __getitem__(self, index):
-        
-        all_list = list(self.pickle)
-        sentence = all_list[index]
+        sentence = self.all_list[index]
         label = self.pickle[sentence]['Label'][0]
 
         if label == True:
@@ -96,11 +94,25 @@ class CompDataset(Dataset):
         else:
             target = 0
 
+        # Extract reasoning type
+        types = self.pickle[sentence].get('types', [])
+        rtype = -1 # default/other
+        if "negation" in types:
+            rtype = 4
+        elif "num1" in types:
+            rtype = 0
+        elif "multi hop" in types:
+            rtype = 1
+        elif "multi claim" in types:
+            rtype = 2
+        elif "existence" in types:
+            rtype = 3
+
         encoded_dict = self.tokenizer.encode_plus(
                     sentence,
                     add_special_tokens = True,      
                     max_length = 128,           
-                    pad_to_max_length = True,
+                    padding = 'max_length',
                     truncation=True,
                     return_attention_mask = True,   
                     return_tensors = 'pt',          
@@ -109,18 +121,20 @@ class CompDataset(Dataset):
         padded_token_list = encoded_dict['input_ids'][0]
         att_mask = encoded_dict['attention_mask'][0]
         
-        sample = (padded_token_list, att_mask, target)
+        sample = (padded_token_list, att_mask, target, rtype)
 
         return sample
 
     def __len__(self):
-        return len(list(self.pickle))
+        return len(self.all_list)
 
 def set_optim(args,model):
     if args.optim == 'adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     elif args.optim == 'adamw':
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)       
+    
+    scheduler = None
     if args.scheduler == 'plateau':
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=args.patience)
     elif args.scheduler == 'linear':
@@ -260,6 +274,7 @@ def main(args):
                     acc_name = ['total accuracy'][i]
                     total_val_loss = 0
                     targets_list = []
+                    rtypes_list = []
                     for j, batch in enumerate(tar_dataloader):
                         
                         val_status = 'Batch ' + str(j) + ' of ' + str(len(val_dataloader))
@@ -269,6 +284,7 @@ def main(args):
                         b_input_ids = batch[0].to(device)
                         b_input_mask = batch[1].to(device)
                         b_labels = batch[2].to(device)      
+                        b_rtypes = batch[3]
                         outputs = model(b_input_ids, attention_mask=b_input_mask)
                         preds = outputs[0]
 
@@ -280,17 +296,28 @@ def main(args):
                         targets_np = b_labels.to('cpu').numpy()
 
                         targets_list.extend(targets_np)
+                        rtypes_list.extend(b_rtypes.tolist())
 
                         if j == 0: 
                             stacked_val_preds = val_preds
                         else:
                             stacked_val_preds = np.vstack((stacked_val_preds, val_preds))
                     
-                    y_true = targets_list
+                    y_true = np.array(targets_list)
                     y_pred = np.argmax(stacked_val_preds, axis=1)
+                    rtypes_array = np.array(rtypes_list)
                     
                     val_acc = accuracy_score(y_true, y_pred)
-                    print('Validation accuracy: ', val_acc*100)
+                    print(f'\n{acc_name.capitalize()}: {val_acc*100:.2f}%')
+
+                    # Breakdown by type
+                    for rt in np.unique(rtypes_array):
+                        if rt == -1: continue
+                        indices = (rtypes_array == rt)
+                        if np.any(indices):
+                            type_acc = accuracy_score(y_true[indices], y_pred[indices])
+                            print(f'-- # examples in type {int(rt)}: {np.sum(indices)} --')
+                            print(f'Acc for type {int(rt)}: {type_acc*100:.4f}')
 
                 model.train()
                 torch.set_grad_enabled(True)
