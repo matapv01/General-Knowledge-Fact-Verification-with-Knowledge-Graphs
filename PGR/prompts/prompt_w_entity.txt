@@ -1,0 +1,121 @@
+Please generated a program for the given sentence.
+Use ONLY the 3 functions 'MATCH', 'SEARCH' and 'VERIFY' in the program. Do NOT use if/else, loops, comments, or any other Python syntax. Each line must be a simple assignment: `var = FUNCTION(args)`.
+1. **MATCH**:
+   - Input: A complete triplet `(entity, relation, entity)`, entity is given in the sentence or output of **SEARCH**.
+   - Functionality: Checks if the triplet exists in the graph.
+   - Output: Returns `True` if the triplet exists; otherwise, `False`.
+
+2. **SEARCH**:
+   - Input: A triplet with one `None` value (missing entity).
+   - Functionality: Identifies the possible missing entity based on the other components.
+   - Output: A list of possible entities for the missing part.
+
+3. **VERIFY**:
+   - Input: The result from the `MATCH` function (`True` or `False`).
+   - Functionality: Verify the final result.
+   - Output: Returns `True` or `False`.
+
+   
+Examples:
+
+# Abilene, Texas is part of Taylor County, Texas.
+# Entities = ["Abilene,_Texas", "Taylor_County,_Texas"]
+-->Generated:
+def program():
+    result_1 = MATCH(('Abilene,_Texas', 'part of', 'Taylor_County,_Texas'))
+    predicted = VERIFY(result_1)
+
+# Lake Placid, N.Y. is served by the Adirondack Regional Airport.
+# Entities = ["Adirondack_Regional_Airport", "Lake_Placid,_New_York"]
+-->Generated:
+def program():
+    result_1 = MATCH(('Adirondack_Regional_Airport', 'serve', 'Lake_Placid,_New_York'))
+    predicted = VERIFY(result_1)
+
+# The airport, which is owned by the Flemish Region, is operated by the Melbourne Croatia Soccer Club Inc..
+# Entities = ["Flemish_Region", "\"Melbourne Croatia Soccer Club Inc.\""]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('Flemish_Region', 'own', None))
+    result_1 = MATCH(('\"Melbourne Croatia Soccer Club Inc.\"', 'operate', entity_1))
+    predicted = VERIFY(result_1)
+
+# The place, designed by Huseyin Butuner and Hilmi Guner, is located in a country, where the leader is Artur Rasizade.
+# Entities = ["\"Hüseyin Bütüner and Hilmi Güner\"", "Artur_Rasizade"]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('\"Hüseyin Bütüner and Hilmi Güner\"', 'design', None))
+    entity_2 = SEARCH((None, 'leader', 'Artur_Rasizade'))
+    result_1 = MATCH((entity_1, 'in', entity_2))
+    predicted = VERIFY(result_1)
+
+# The President of the Departmental Council leads Anaheim, California in the United States.
+# Entities = ["Anaheim,_California", "United_States", "California", "President_of_the_Departmental_Council"]
+-->Generated:
+def program():
+    result_1 = MATCH(('President_of_the_Departmental_Council', 'lead', 'Anaheim,_California'))
+    result_2 = MATCH(('Anaheim,_California', 'in', 'United_States'))
+    predicted = VERIFY(result_1 and result_2)
+
+# The Ariane 5 was launched from the ELA-3 launchpad at the Guiana Space Centre.
+# Entities = ["ELA-3", "Ariane_5", "Guiana_Space_Centre"]
+-->Generated:
+def program():
+    result_1 = MATCH(('ELA-3', 'launch', 'Ariane_5'))
+    result_2 = MATCH(('ELA-3', 'at', 'Guiana_Space_Centre'))
+    predicted = VERIFY(result_1 and result_2)
+
+# Well Ab Klink was born in Stellendam and graduated from Erasmus University Rotterdam!
+# Entities = ["Erasmus_University_Rotterdam", "Ab_Klink", "Stellendam"]
+-->Generated:
+def program():
+    result_1 = MATCH(('Ab_Klink', 'born in', 'Stellendam'))
+    result_2 = MATCH(('Ab_Klink', 'graduated from', 'Erasmus_University_Rotterdam'))
+    predicted = VERIFY(result_1 and result_2)
+
+# Yes, Michael Kaeshammer was not a president!
+# Entities = ["Michael_Kaeshammer"]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('Michael_Kaeshammer', 'president', None))
+    result_1 = MATCH(('Michael_Kaeshammer', 'president', entity_1))
+    predicted = VERIFY(not result_1)
+
+# Albuquerque New Mexico is located not in the country where the Americans are.
+# Entities = ["Albuquerque,_New_Mexico", "Americans"]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('Albuquerque,_New_Mexico', 'in', None))
+    result_1 = MATCH(('Americans', 'in', entity_1))
+    predicted = VERIFY(not result_1)
+
+# Do you know that Sweden is not the birthplace of Ace Wilder?
+# Entities = ["Ace_Wilder", "Sweden"]
+-->Generated:
+def program():
+    result_1 = MATCH(('Ace_Wilder', 'born in', 'Sweden'))
+    predicted = VERIFY(not result_1)
+
+# AIDA Cruise line operated the ship which was built by Meyer Werft in Mount Ibuki.
+# Entities = ["AIDA_Cruises", "Meyer_Werft", "\"Mount Ibuki\""]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('AIDA_Cruises', 'operate', None))
+    result_1 = MATCH(('Meyer_Werft', 'build', entity_1))
+    result_2 = MATCH(('Meyer_Werft', 'in', '\"Mount Ibuki\"'))
+    predicted = VERIFY(result_1 and result_2)
+
+# 'A film' was produced by Anatole de Grunwald, directed by Harold French, with cinematography done by Bernard Knowles.
+# Entities = ["Anatole_de_Grunwald", "Bernard_Knowles", "Harold_French"]
+-->Generated:
+def program():
+    entity_1 = SEARCH(('Anatole_de_Grunwald', 'produce', None))
+    result_1 = MATCH(('Harold_French', 'direct', entity_1))
+    result_2 = MATCH(('Bernard_Knowles', 'cinematography', entity_1))
+    predicted = VERIFY(result_1 and result_2)
+
+    
+Your Task:
+# <<<<S>>>>
+# Entities = <<<<ENTITIES>>>>
+-->Generated:

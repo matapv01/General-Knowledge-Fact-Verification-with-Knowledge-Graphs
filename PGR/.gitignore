@@ -1,0 +1,5 @@
+result/
+result_final.pickle
+result_statistics.txt
+__pycache__/
+*.pyc

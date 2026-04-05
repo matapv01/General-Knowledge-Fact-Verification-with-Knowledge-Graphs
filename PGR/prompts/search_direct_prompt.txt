@@ -1,0 +1,32 @@
+Please find the triplet in "Triplet List" that aligns with the "Target Triplet" of "Target Claim". Output the matched triplets in JSON format.
+
+
+Examples:
+
+Triplet List : [["William_Anders", "almaMater", "\"AFIT, M.S. 1962\""]]
+Target Claim : An astronaut graduated with an M.S. in 1962 from AFIT, became a member of the Apollo 8 team and retired on September 1st, 1969.
+Target Triplet : ["Unknown", "graduate", "\"AFIT, M.S. 1962\""]
+-->Output : [["William_Anders", "almaMater", "\"AFIT, M.S. 1962\""]]
+
+Triplet List : [["AZAL_PFK", "capacity", "\"3500\""], ["AZAL_PFK", "ground", "AZAL_Arena"], ["AZAL_PFK", "manager", "Tarlan_Ahmadov"], ["AZAL_PFK", "league", "Azerbaijan_Premier_League"], ["AZAL_PFK", "season", "\"2014\""], ["AZAL_PFK", "fullname", "\"AZAL Peşəkar Futbol Klubu\""], ["AZAL_PFK", "nickname", "\"Təyyarəçilər\""], ["AZAL_PFK", "chrtitle", "\"President\""], ["AZAL_PFK", "chairman", "\"Zaur Akhundov\""], ["AZAL_PFK", "position", "\"6\""], ["AZAL_PFK", "location", "\"Shuvalan, Baku, Azerbaijan\""], ["AZAL_PFK", "owner", "\"AZAL PFK\""], ["AZAL_PFK", "tenants", "\"AZAL PFK\""]]
+Target Claim : AZAL PFK is in the league but Qarabag FK are the champions.
+Target Triplet : ["AZAL_PFK", "in", "Unknown"]
+-->Output : [["AZAL_PFK", "league", "Azerbaijan_Premier_League"]]
+
+Triplet List : [["Alliant_Techsystems", "product", "XM25_CDTE"]]
+Target Claim : They also produce the XM25 CDTE and make the ALV X-1.
+Target Triplet : ["Unknown", "produce", "XM25_CDTE"]
+-->Output : [["Alliant_Techsystems", "product", "XM25_CDTE"]]
+
+Triplet List : [["Military_of_Paraguay", "country", "Paraguay"], ["Anastasio_Somoza_Debayle", "deathPlace", "Paraguay"], ["Anastasio_Somoza_Debayle", "placeOfDeath", "Paraguay"], ["Guarani_language", "state", "Paraguay"], ["Alfredo_Stroessner", "birthPlace", "Paraguay"], ["Andrés_Rodríguez_(politician)", "nationality", "Paraguay"], ["José_Luis_Chilavert", "placeOfBirth", "Paraguay"], ["Argentina_national_football_team", "location", "Paraguay"], ["CONMEBOL", "headquarter", "Paraguay"], ["CONMEBOL", "headquarters", "Paraguay"], ["Argentine_War_of_Independence", "place", "Paraguay"], ["Paraguarí_Department", "subdivisionName", "Paraguay"], ["Cerro_Porteño", "ground", "Paraguay"], ["Battle_of_Curupayty", "commander", "Paraguay"], ["Ramón_Delgado", "residence", "Paraguay"], ["Toba_Qom_language", "spokenIn", "Paraguay"], ["Football_Federation_of_the_3rd_Department_Cordillera", "region", "Paraguay"], ["Flou", "hometown", "Paraguay"], ["Flou", "origin", "Paraguay"], ["Guaraní_International_Airport", "city", "Paraguay"], ["George_Maney", "occupation", "Paraguay"], ["Bolsa_de_Valores_y_Productos_de_Asunción_(BVPASA)", "locationCountry", "Paraguay"], ["Julián_Rejala", "award", "Paraguay"], ["Radio_Club_Paraguayo", "regionServed", "Paraguay"], ["1970_Copa_Libertadores", "stadium", "Paraguay"], ["Dr._Luis_María_Argaña_International_Airport", "cityServed", "Paraguay"], ["Perla_(singer)", "birthDate", "Paraguay"], ["Víctor_Fatecha", "stateOfOrigin", "Paraguay"], ["Anthony_Bourdain:_Parts_Unknown", "title", "Paraguay"], ["Raquel_Chaves", "citizenship", "Paraguay"], ["Embassy_of_Colombia,_Asunción", "address", "Paraguay"]]
+Target Claim : Yes, he was born in Paraguay and died in Asuncion.
+Target Triplet : ["Unknown", "born in", "Paraguay"]
+-->Output : [["Alfredo_Stroessner", "birthPlace", "Paraguay"], ["José_Luis_Chilavert", "placeOfBirth", "Paraguay"]]
+
+
+Your Task:
+
+Triplet List : <<<<LIST>>>>
+Target Claim : <<<<CLAIM>>>>
+Target Triplet : <<<<TARGET>>>>
+-->Output : 

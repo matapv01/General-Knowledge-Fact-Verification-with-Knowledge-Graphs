@@ -1,0 +1,32 @@
+Please find the triplet in "Triplet List" that aligns with the "Target Triplet" of "Target Claim". Output the matched triplets in JSON format.
+
+
+Examples:
+
+Triplet List : [["Ahmedabad", "country", "India"]]
+Target Claim : There is a museum in Ahmedabad, India.
+Target Triplet : [["Ahmedabad", "in", "India"]]
+-->Output : [["Ahmedabad", "country", "India"]]
+
+Triplet List : [["Alfredo_Zitarrosa", "birthPlace", "Uruguay"], ["Alfredo_Zitarrosa", "deathPlace", "Uruguay"]]
+Target Claim : Alfredo Zitarrosa died in a country led by Tabaré Vázquez.
+Target Triplet : [["Alfredo_Zitarrosa", "died in", "Uruguay"]]
+-->Output : [["Alfredo_Zitarrosa", "deathPlace", "Uruguay"]]
+
+Triplet List : [["1101_Clematis", "Planet/apoapsis", "\"5.20906E8\""]]
+Target Claim : well it has a mass of 5.7 kilograms and an apoapsis of 520906000.0 km.
+Target Triplet : [["1101_Clematis", "apoapsis", "\"5.20906E8\""]]
+-->Output : [["1101_Clematis", "Planet/apoapsis", "\"5.20906E8\""]]
+
+Triplet List : [["Alfredo_Zitarrosa", "associatedBand", "Ciro_Pérez"], ["Alfredo_Zitarrosa", "associatedMusicalArtist", "Ciro_Pérez"], ["Alfredo_Zitarrosa", "associatedActs", "Ciro_Pérez"]]
+Target Claim : Alfredo Zitarrosa is related to the musician Ciro Pérez.
+Target Triplet : [["Alfredo_Zitarrosa", "related to", "Ciro_Pérez"]]
+-->Output : [["Alfredo_Zitarrosa", "associatedBand", "Ciro_Pérez"], ["Alfredo_Zitarrosa", "associatedMusicalArtist", "Ciro_Pérez"], ["Alfredo_Zitarrosa", "associatedActs", "Ciro_Pérez"]]
+
+
+Your Task:
+
+Triplet List : <<<<LIST>>>>
+Target Claim : <<<<CLAIM>>>>
+Target Triplet : <<<<TARGET>>>>
+-->Output : 
