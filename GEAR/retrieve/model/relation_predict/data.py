@@ -66,3 +66,4 @@ class FactKGRelationDataModule(pl.LightningDataModule):
         return_tensors="pt"
     )
     return model_inputs, label_ids  
+

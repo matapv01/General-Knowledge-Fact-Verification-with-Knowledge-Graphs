@@ -116,3 +116,4 @@ class FactKGRelationClassifier(pl.LightningModule):
           lr=self.learning_rate, 
       )
       return {"optimizer": optimizer}
+
