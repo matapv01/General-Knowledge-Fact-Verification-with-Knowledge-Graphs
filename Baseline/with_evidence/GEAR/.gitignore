@@ -1,0 +1,45 @@
+# Data files (heavy)
+data/
+*.pickle
+*.pkl
+*.bin
+
+# Model checkpoints
+bert/
+*.ckpt
+*.pt
+*.pth
+checkpoint-*/
+
+# Log & experiment output folders
+exp_*/
+result_statistics.txt
+result_final.pickle
+valid_pred.bin
+test_pred.bin
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Environment
+.env
+*.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# JSON output files (retrieved results)
+result/program_generate/
+result/relation_matched/
+test_relations_top3.json
+predictions_hop.json
+train.json
+dev.json
+test.json
+total_data.pkl

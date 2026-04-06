@@ -1,0 +1,5 @@
+pandas
+pytorch-lightning
+scikit-learn
+transformers
+
