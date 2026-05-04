@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fact-Checking Workflow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #12161f;
+            --bg-canvas: #1e2532;
+            --bg-panel: #262f3f;
+            --border-color: #3b475c;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --wire-off: #3b475c;
+            --wire-on: #10b981;
+            --color-pink: #ec4899;
+            --color-blue: #3b82f6;
+            --color-orange: #f59e0b;
+            --color-purple: #8b5cf6;
+            --color-green: #10b981;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark); color: var(--text-main);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: #171b26; padding: 15px 30px; display: flex; gap: 15px; align-items: center;
+            border-bottom: 1px solid var(--border-color); z-index: 100;
+        }
+        .header h1 { margin: 0; font-size: 18px; color: white; margin-right: 20px;}
+        .input-group { display: flex; gap: 10px; flex: 1; }
+        .input-group input {
+            padding: 10px 15px; border-radius: 6px; border: 1px solid var(--border-color);
+            background: #0d1017; color: white; font-family: inherit; font-size: 14px;
+        }
+        .btn-run {
+            padding: 10px 20px; background: var(--color-blue); color: white; border: none; border-radius: 6px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-run:hover { background: #2563eb; }
+        .btn-run:disabled { background: var(--border-color); cursor: not-allowed; }
+
+        /* LAYOUT MAIN */
+        .workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+        /* CANVAS AREA */
+        .canvas-wrapper {
+            flex: 1; overflow: auto; position: relative;
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-color: var(--bg-canvas);
+        }
+        .canvas {
+            position: absolute; top: 0; left: 0; padding: 60px;
+            width: 2500px; height: 1000px; /* Vùng cuộn siêu rộng */
+        }
+
+        /* SVG WIRES */
+        #wires-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .wire { stroke: var(--wire-off); stroke-width: 4; fill: none; transition: 0.5s; stroke-linecap: round;}
+        
+        /* HIỆU ỨNG TRUYỀN DỮ LIỆU (FLOW ANIMATION) */
+        .wire.flowing {
+            stroke: var(--color-blue);
+            stroke-dasharray: 12 12;
+            animation: flow 1s linear infinite;
+        }
+        .wire.completed { stroke: var(--wire-on); stroke-width: 4; }
+        .wire.skipped { stroke: var(--wire-off); opacity: 0.2; }
+        
+        @keyframes flow { to { stroke-dashoffset: -24; } }
+
+        /* N8N NODE */
+        .node {
+            position: absolute; z-index: 10;
+            width: 220px; background: var(--bg-panel); border: 2px solid var(--border-color);
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s ease; opacity: 0.4; cursor: pointer;
+        }
+        .node:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+        .node.active { opacity: 1; border-color: var(--color-orange); box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+        .node.completed { opacity: 1; border-color: var(--wire-on); }
+        .node.skipped { opacity: 0.2; filter: grayscale(100%); pointer-events: none; }
+
+        .node-header {
+            padding: 12px 15px; border-radius: 6px 6px 0 0; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .node-icon { 
+            width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px;
+        }
+        .node-title { font-weight: 600; font-size: 14px; flex: 1; }
+        .node-status { width: 10px; height: 10px; border-radius: 50%; background: var(--border-color); }
+        
+        .node.active .node-status { background: var(--color-orange); box-shadow: 0 0 8px var(--color-orange); animation: pulse 1s infinite; }
+        .node.completed .node-status { background: var(--wire-on); }
+        @keyframes pulse { 50% { opacity: 0.4; } }
+
+        .node-body { padding: 12px 15px; font-size: 12px; color: var(--text-dim); }
+
+        /* VỊ TRÍ CÁC NODE TỰ ĐỊNH NGHĨA TRÊN CANVAS */
+        #n-entity { top: 150px; left: 50px; }
+        #n-db { top: 150px; left: 350px; }
+        #n-rr-kg { top: 150px; left: 650px; }
+        #n-llm-kg { top: 150px; left: 950px; }
+        
+        #n-web { top: 350px; left: 950px; } /* Nằm dưới LLM KG */
+        #n-rr-web { top: 350px; left: 1250px; }
+        #n-llm-web { top: 350px; left: 1550px; }
+        
+        #n-final { top: 150px; left: 1850px; width: 180px; text-align: center; border-color: transparent;}
+        #n-final .node-header { background: var(--color-green); color: white; border: none; border-radius: 8px;}
+        #n-final .node-body { display: none; } /* Giấu body */
+
+        /* SIDE PANEL (HIỂN THỊ OUTPUT KHI BẤM VÀO NODE) */
+        .side-panel {
+            width: 400px; background: #171b26; border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column; transform: translateX(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; right: 0; top: 0; height: 100%; z-index: 50; box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+        }
+        .side-panel.open { transform: translateX(0); }
+        
+        .panel-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .panel-header h2 { margin: 0; font-size: 16px; color: white; }
+        .btn-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; }
+        .btn-close:hover { color: white; }
+
+        .panel-content { padding: 20px; overflow-y: auto; flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.5; color: #cbd5e1; }
+        .panel-content .box { background: var(--bg-canvas); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; word-wrap: break-word;}
+        .highlight { color: var(--color-orange); font-weight: bold; }
+
+        .loader { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL -->
+    <div class="header">
+        <h1><i class="fa-solid fa-code-branch"></i> Fact-Checking Workflow</h1>
+        <div class="input-group">
+            <input type="text" id="apiUrl" placeholder="Link Gradio Public (vd: https://xxxx.gradio.live)" style="width: 250px;">
+            <input type="text" id="claimText" placeholder="Nhập câu Claim (vd: Jupiter is the largest planet...)" value="Albert Einstein won the Nobel Prize in Physics in 1921.">
+        </div>
+        <button id="runBtn" class="btn-run">
+            <div class="loader" id="spinner"></div>
+            <span id="btnText"><i class="fa-solid fa-play"></i> Run WorkFlow</span>
+        </button>
+    </div>
+
+    <div class="workspace">
+        <!-- CANVAS (VẼ NODE & DÂY) -->
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <div class="canvas" id="canvas">
+                <svg id="wires-svg"></svg>
+                
+                <div class="node" id="n-entity" data-id="entity">
+                    <div class="node-header"><div class="node-icon" style="background:var(--color-pink)"><i class="fa-solid fa-tag"></i></div><div class="node-title">Entity Linking</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-db" data-id="db">
+                    <div class="node-header"><div class="node-icon" style="background:var(--color-blue)"><i class="fa-solid fa-database"></i></div><div class="node-title">DBpedia</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-rr-kg" data-id="rr-kg">
+                    <div class="node-header"><div class="node-icon" style="background:var(--border-color)"><i class="fa-solid fa-filter"></i></div><div class="node-title">Rerank KG</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-llm-kg" data-id="llm-kg">
+                    <div class="node-header"><div class="node-icon" style="background:var(--color-purple)"><i class="fa-solid fa-brain"></i></div><div class="node-title">LLM Extract</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-web" data-id="web">
+                    <div class="node-header"><div class="node-icon" style="background:var(--color-orange)"><i class="fa-brands fa-google"></i></div><div class="node-title">Web Search</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-rr-web" data-id="rr-web">
+                    <div class="node-header"><div class="node-icon" style="background:var(--border-color)"><i class="fa-solid fa-filter"></i></div><div class="node-title">Rerank Web</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-llm-web" data-id="llm-web">
+                    <div class="node-header"><div class="node-icon" style="background:var(--color-purple)"><i class="fa-solid fa-brain"></i></div><div class="node-title">LLM Verify</div><div class="node-status"></div></div>
+                    <div class="node-body">Wait for execution...</div>
+                </div>
+
+                <div class="node" id="n-final" data-id="final">
+                    <div class="node-header"><div class="node-title"><i class="fa-solid fa-flag-checkered"></i> VERDICT</div><div class="node-status" style="display:none"></div></div>
+                    <div class="node-body"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDE PANEL OUTPUT -->
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-header">
+                <h2 id="panelTitle">Node Output</h2>
+                <button class="btn-close" onclick="document.getElementById('sidePanel').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="panel-content" id="panelContent">
+                Bấm vào một node đã chạy xong để xem kết quả chi tiết.
+            </div>
+        </div>
+    </div>
+
+    <!-- JS MODULE -->
+    <script type="module">
+        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+        // Object chứa Output chi tiết của từng Node (ẩn bên dưới, khi click mới hiện)
+        let nodeOutputs = {};
+        
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // --- VẼ ĐƯỜNG ỐNG (WIRES) ---
+        function drawAllWires() {
+            const svg = document.getElementById('wires-svg');
+            svg.innerHTML = ''; 
+
+            const connections = [
+                ['n-entity', 'n-db', 'r'],
+                ['n-db', 'n-rr-kg', 'r'],
+                ['n-rr-kg', 'n-llm-kg', 'r'],
+                ['n-llm-kg', 'n-final', 'r'], // Nhánh chính đi thẳng
+                ['n-llm-kg', 'n-web', 'b'],   // Nhánh rẽ đi xuống dưới
+                ['n-web', 'n-rr-web', 'r'],
+                ['n-rr-web', 'n-llm-web', 'r'],
+                ['n-llm-web', 'n-final', 'rt'] // Chéo lên đích
+            ];
+
+            connections.forEach(([id1, id2, dir]) => {
+                const el1 = document.getElementById(id1);
+                const el2 = document.getElementById(id2);
+                
+                // Tính toạ độ các cổng (Ports)
+                let x1, y1, x2, y2;
+                
+                if (dir === 'r') { // Nối ngang từ phải sang trái
+                    x1 = el1.offsetLeft + el1.offsetWidth; y1 = el1.offsetTop + 25;
+                    x2 = el2.offsetLeft; y2 = el2.offsetTop + 25;
+                } else if (dir === 'b') { // Nối từ dưới xuống trên (nhánh rẽ)
+                    x1 = el1.offsetLeft + (el1.offsetWidth / 2); y1 = el1.offsetTop + el1.offsetHeight;
+                    x2 = el2.offsetLeft + (el2.offsetWidth / 2); y2 = el2.offsetTop;
+                } else if (dir === 'rt') { // Chéo lên
+                    x1 = el1.offsetLeft + el1.offsetWidth; y1 = el1.offsetTop + 25;
+                    x2 = el2.offsetLeft + 20; y2 = el2.offsetTop + 40;
+                }
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                
+                // Curve cong kiểu n8n (Cubic Bezier)
+                let d;
+                if (dir === 'b') {
+                    d = `M ${x1} ${y1} C ${x1} ${y1 + 50}, ${x2} ${y2 - 50}, ${x2} ${y2}`;
+                } else {
+                    const curve = Math.max(Math.abs(x2 - x1) * 0.5, 50);
+                    d = `M ${x1} ${y1} C ${x1 + curve} ${y1}, ${x2 - curve} ${y2}, ${x2} ${y2}`;
+                }
+                
+                path.setAttribute("d", d);
+                path.setAttribute("class", "wire");
+                path.id = `wire-${id1}-${id2}`;
+                svg.appendChild(path);
+            });
+        }
+        window.addEventListener('load', drawAllWires);
+
+        // --- SỰ KIỆN CLICK VÀO NODE HIỆN PANEL ---
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', () => {
+                const id = node.getAttribute('data-id');
+                if (nodeOutputs[id]) {
+                    document.getElementById('panelTitle').innerText = node.querySelector('.node-title').innerText;
+                    document.getElementById('panelContent').innerHTML = nodeOutputs[id];
+                    document.getElementById('sidePanel').classList.add('open');
+                }
+            });
+        });
+
+        // --- ANIMATION CHẠY TỪNG BƯỚC ---
+        async function runNode(nodeId, quickInfo, fullOutput, nextTargets = []) {
+            const node = document.getElementById(nodeId);
+            const nId = node.getAttribute('data-id');
+            const body = node.querySelector('.node-body');
+
+            // Cuộn camera (Pan) theo flow
+            const wrapper = document.getElementById('canvasWrapper');
+            wrapper.scrollTo({ left: node.offsetLeft - 100, behavior: 'smooth' });
+
+            // Lưu data vào Panel ẩn
+            nodeOutputs[nId] = fullOutput;
+
+            // Kích hoạt Node (Running)
+            node.classList.add('active');
+            body.innerText = "Running...";
+            await sleep(1500); // Giả lập AI xử lý CHẬM
+            
+            // Xong Node (Completed)
+            node.classList.remove('active');
+            node.classList.add('completed');
+            body.innerHTML = `<div>${quickInfo}</div><div style="margin-top:8px; font-size:10px; color:var(--color-blue)"><i class="fa-solid fa-mouse-pointer"></i> Click to view</div>`;
+            
+            // Truyền tín hiệu (Wire Animation)
+            for (let target of nextTargets) {
+                const wire = document.getElementById(`wire-${nodeId}-${target}`);
+                if (wire) {
+                    wire.classList.add('flowing'); // Chạy hiệu ứng dashed line
+                    await sleep(2000); // Chờ tín hiệu chạy tới đích
+                    wire.classList.remove('flowing');
+                    wire.classList.add('completed');
+                }
+            }
+        }
+
+        // --- CHẠY MAIN PIPELINE ---
+        document.getElementById("runBtn").addEventListener("click", async () => {
+            const urlRaw = document.getElementById("apiUrl").value.trim();
+            const claim = document.getElementById("claimText").value.trim();
+            if (!urlRaw) return alert("Vui lòng nhập Link API!");
+
+            const btn = document.getElementById("runBtn");
+            btn.disabled = true;
+            document.getElementById("btnText").innerText = "Executing...";
+            document.getElementById("spinner").style.display = "block";
+            
+            // Reset UI
+            nodeOutputs = {};
+            document.getElementById('sidePanel').classList.remove('open');
+            document.querySelectorAll('.node').forEach(n => { n.className = 'node'; n.querySelector('.node-body').innerText = 'Wait for execution...'; });
+            document.querySelectorAll('.wire').forEach(w => { w.className.baseVal = 'wire'; });
+            document.getElementById('canvasWrapper').scrollTo({ left: 0, behavior: 'smooth' });
+
+            let trace;
+            try {
+                // Fetch data ngầm
+                const app = await client(urlRaw.replace(/\/$/, ""));
+                const result = await app.predict("/verify", [claim]);
+                trace = result.data[0]; 
+            } catch (error) {
+                alert("Lỗi API: " + error.message);
+                btn.disabled = false;
+                document.getElementById("btnText").innerHTML = `<i class="fa-solid fa-play"></i> Run WorkFlow`;
+                document.getElementById("spinner").style.display = "none";
+                return;
+            }
+
+            // Bắt đầu diễn Animation
+            
+            // 1. Entity
+            let outEnt = trace.step_1_entities.length ? trace.step_1_entities.map(e => `<div class="box"><i class="fa-solid fa-tag" style="color:var(--color-pink)"></i> ${e}</div>`).join('') : "<div class='box'>Không tìm thấy thực thể</div>";
+            await runNode('n-entity', `Found: ${trace.step_1_entities.length} entities`, outEnt, ['n-db']);
+
+            // 2. DBpedia
+            let outDb = trace.step_2_kg_raw_triples.length ? trace.step_2_kg_raw_triples.map(t => `<div class="box">${t}</div>`).join('') : "<div class='box'>Rỗng</div>";
+            await runNode('n-db', `Raw Triples: ${trace.step_2_kg_raw_count}`, outDb, ['n-rr-kg']);
+
+            // 3. Rerank KG
+            let outRrKg = trace.step_3_kg_reranked.length ? trace.step_3_kg_reranked.map((t, i) => `<div class="box"><span class="highlight">#${i+1}</span><br>${t}</div>`).join('') : "<div class='box'>Rỗng</div>";
+            await runNode('n-rr-kg', `Selected Top 5`, outRrKg, ['n-llm-kg']);
+
+            // 4. LLM KG
+            let outLlmKg = `<div class="box" style="font-size:20px; text-align:center; font-weight:bold;">${trace.step_4_kg_prediction}</div>`;
+            
+            if (trace.needs_web_fallback) {
+                await runNode('n-llm-kg', `Label: ${trace.step_4_kg_prediction}<br>(Trigger Fallback)`, outLlmKg, ['n-web']);
+                
+                // 5. Web Search
+                let outWeb = trace.step_5_web_raw_snippets.length ? trace.step_5_web_raw_snippets.map(t => `<div class="box">${t}</div>`).join('') : "<div class='box'>Rỗng</div>";
+                await runNode('n-web', `Snippets: ${trace.step_5_web_snippets_count}`, outWeb, ['n-rr-web']);
+
+                // 6. Rerank Web
+                let outRrWeb = trace.step_6_web_reranked.length ? trace.step_6_web_reranked.map((t, i) => `<div class="box"><span class="highlight">#${i+1}</span><br>${t}</div>`).join('') : "<div class='box'>Rỗng</div>";
+                await runNode('n-rr-web', `Selected Top 5`, outRrWeb, ['n-llm-web']);
+
+                // 7. LLM Web
+                let outLlmWeb = `<div class="box" style="font-size:20px; text-align:center; font-weight:bold;">${trace.step_7_web_prediction}</div>`;
+                await runNode('n-llm-web', `Label: ${trace.step_7_web_prediction}`, outLlmWeb, ['n-final']);
+            } else {
+                // Bỏ qua Web, truyền thẳng lên Verdict
+                document.getElementById('n-web').classList.add('skipped');
+                document.getElementById('n-rr-web').classList.add('skipped');
+                document.getElementById('n-llm-web').classList.add('skipped');
+                document.getElementById('wire-n-web-n-rr-web').classList.add('skipped');
+                document.getElementById('wire-n-rr-web-n-llm-web').classList.add('skipped');
+                document.getElementById('wire-n-llm-web-n-final').classList.add('skipped');
+
+                await runNode('n-llm-kg', `Label: ${trace.step_4_kg_prediction}`, outLlmKg, ['n-final']);
+            }
+
+            // 8. Verdict
+            const nFinal = document.getElementById('n-final');
+            nFinal.classList.add('completed');
+            
+            let color = trace.final_label === "Supported" ? "var(--color-green)" : trace.final_label === "Refuted" ? "#ef4444" : "var(--color-orange)";
+            nFinal.querySelector('.node-header').style.background = color;
+            nFinal.querySelector('.node-title').innerText = trace.final_label.toUpperCase();
+            
+            document.getElementById('canvasWrapper').scrollTo({ left: nFinal.offsetLeft - 200, behavior: 'smooth' });
+
+            // Restore UI
+            btn.disabled = false;
+            document.getElementById("btnText").innerHTML = `<i class="fa-solid fa-play"></i> Run WorkFlow`;
+            document.getElementById("spinner").style.display = "none";
+        });
+    </script>
+</body>
+</html>
