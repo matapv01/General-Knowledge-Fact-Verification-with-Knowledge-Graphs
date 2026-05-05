@@ -1,0 +1,31 @@
+{
+    "raw_data_dir": "../data/raw/FactKG",
+    "processed_data_dir": "../data/FactKG",
+    "embedding_model": {
+        "model_path": "../data/raw/nomic-embed-text-v1",
+        "device": "cuda:0"
+    },
+    "vector_store_names": {
+        "node": "FactKG_node",
+        "relation": "FactKG_relation",
+        "type": "FactKG_type"
+    },
+    "retriever": {
+        "node_sim_topk": 16384,
+        "relation_sim_topk": 512,
+        "type_sim_topk": 16,
+        "final_topk": 3,
+        "timeout": 1800
+    },
+    "llm": {
+        "model": "llama3:70b",
+        "base_url": "http://localhost:11451/v1",
+        "api_key": "ollama",
+        "temperature": 0.2,
+        "top_p": 0.1,
+        "max_tokens": 1024
+    },
+    "rewrite_shot": 12,
+    "answer_shot": 12,
+    "output_filename": "../results/FactKG_query.txt"
+}

@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/
+
+# Virtual Environment
+Demo_SimGRAG/.venv/
+
+# DB Volumes & Data (Very important to ignore)
+Demo_SimGRAG/volumes/
+Demo_SimGRAG/output/
+Demo_SimGRAG/data/
+data/
+
+# Logs
+*.log
+logs/
+Demo_SimGRAG/logs/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+
+# uv lock (tùy chọn, thông thường có thể commit uv.lock nhưng project này có thể ignore)
+# uv.lock

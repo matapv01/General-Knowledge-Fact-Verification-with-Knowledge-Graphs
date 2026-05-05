@@ -1,0 +1,10 @@
+{
+    "retriever": {
+        "node_sim_topk": 16384,
+        "relation_sim_topk": 512,
+        "type_sim_topk": 16,
+        "final_topk": 3,
+        "timeout": 1800
+    }
+}
+

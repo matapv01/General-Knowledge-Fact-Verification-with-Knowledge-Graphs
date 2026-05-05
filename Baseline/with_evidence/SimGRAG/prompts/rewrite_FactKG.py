@@ -29,9 +29,9 @@ examples = [
             "The celestial body known as 1101 Clematis has an apoapsis of 520906000.0 kilometres"
         ],
         "graph": [
-            ('1101 Clematis', 'escape velocity', '"0.02"'), 
-            ('1101 Clematis', 'temperature', '"155"'), 
-            ('1101 Clematis', 'apoapsis', '"5.20906E8"')
+            ('1101 Clematis', 'escape velocity', '0.02 k.p.s.'), 
+            ('1101 Clematis', 'temperature', '155 kelvins'), 
+            ('1101 Clematis', 'apoapsis', '520906000.0 kilometres')
         ]
     },
     {
@@ -131,7 +131,7 @@ Notes)
 1). Use the original description in the query with enough context, NEVER use unspecific words like 'in', 'is', 'for', 'of', 'have', 'go to', etc.
 2). For nodes or relations that are unknown, you can use the keyword 'UNKNOWN' with a unique ID, e.g., 'UNKNOWN artist 1', 'UNKNOWN relation 1'.
 3). For statements with negations, such as 'not', 'wasn't', 'didn't', you should use the keyword 'UNKNOWN' for the negated nodes, e.g., 'A does not live in B' results in the triple ('A', 'live in', 'UNKNOWN location 1').
-4). For values without textual semantic meanings, such as numbers, heights and speeds, you should only preserve the value itself with double quotes without any units, e.g., '"156"'. For large numbers with lots of 0000, use the scientific notation, e.g., '"5.2E06"'.
+4). Do not use double quotes around numbers or values. Keep the numerical values and units as they naturally appear in the text (e.g., '155 kelvins', '0.02 k.p.s.').
 5). Return the segmented query and extracted graph structures strictly following the format:
     {
         "divided": [

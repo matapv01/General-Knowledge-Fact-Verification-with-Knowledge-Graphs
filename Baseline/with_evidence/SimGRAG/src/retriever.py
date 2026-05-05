@@ -113,12 +113,14 @@ class Retriever:
 			# search for similar nodes and relations
 			start = time.time()
 			def search_node_vectors():
+				print(f"[DEBUG search_node_vectors] query_nodes: {query_nodes}")
 				return {
 					query_node: {each['entity']['name']: math.sqrt(each['distance']) for each in result if each['entity']['name'] in self.KG}
 					for query_node, result in zip(query_nodes, 
 												self.node_vector_store.search(query_node_vectors, self.node_sim_topk))
 				} if query_nodes else {}
 			def search_relation_vectors():
+				print(f"[DEBUG search_relation_vectors] query_relations: {query_relations}")
 				similar_relations = {
 										query_relation: {each['entity']['name']: math.sqrt(each['distance']) for each in result}
 										for query_relation, result in zip(query_relations, 
@@ -152,6 +154,9 @@ class Retriever:
 			similar_nodes = {**results['node_vectors'], **results['type_vectors']}
 			similar_relations = results['relation_vectors']
 			vector_search_time = time.time() - start
+			
+			print(f"\\n[DEBUG] similar_nodes = {similar_nodes}")
+			print(f"[DEBUG] similar_relations = {similar_relations}\\n")
 		
 			# DFS matching order
 			root = sorted(similar_nodes.keys(), key=lambda x: (len(similar_nodes[x]) if similar_nodes[x] else len(self.KG)))[0]
@@ -180,11 +185,16 @@ class Retriever:
 				cur_Q_node, Q_neighbor = Q_edge_sequence[cur_Q_idx]
 				Q_relation = Q[cur_Q_node][Q_neighbor]['relation']
 				cur_KG_node = node_matching[cur_Q_node]
-
+				
+				# Debug to see graph iteration
+				print(f"  [DEBUG-DFS] Try matching Q_edge: ({cur_Q_node} -[{Q_relation}]-> {Q_neighbor}) with cur_KG_node: {cur_KG_node}")
+				
 				to_expand = []
 				for KG_relation in self.KG[cur_KG_node]:
+					print(f"    [DEBUG-DFS] Checking KG_relation: {KG_relation} | Valid: {similar_relations[Q_relation] is None or KG_relation in similar_relations[Q_relation]}")
 					if similar_relations[Q_relation] is None or KG_relation in similar_relations[Q_relation]:
 						for KG_neighbor in self.KG[cur_KG_node][KG_relation]:
+							print(f"      [DEBUG-DFS] Checking KG_neighbor: {KG_neighbor} | Valid: {similar_nodes[Q_neighbor] is None or KG_neighbor in similar_nodes[Q_neighbor]}")
 							if similar_nodes[Q_neighbor] is None or KG_neighbor in similar_nodes[Q_neighbor]:
 								next_reuse_nodes = reuse_nodes
 								if Q_neighbor in node_matching:
@@ -221,7 +231,9 @@ class Retriever:
 			# graph search
 			start = time.time()
 			results = kSmallest(self.final_topk)
+			print(f"\\n[DEBUG] Starting graph search for root {root} over {len(similar_nodes[root])} candidates")
 			for KG_node, distance in sorted(similar_nodes[root].items(), key=lambda x: x[1]):
+				print(f"[DEBUG] Initiating match sequence from KG_node: {KG_node} (distance: {distance})")
 				match(0, {root: KG_node}, [], distance, False)
 			graph_search_time = time.time() - start
 		
