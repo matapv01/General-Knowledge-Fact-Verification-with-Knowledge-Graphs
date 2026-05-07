@@ -1,23 +1,23 @@
 # Subgraph Extraction Preview
 
-**Claim**: Water freezes at 100 degrees Celsius.
+**Claim**: Jupiter is the closest planet to the Sun.
 
 **Ground Truth**: False
 
-**LLM Trả Lời**: As the provided evidences do not mention the freezing point of water and common knowledge states water freezes at 0 degrees Celsius, not 100, the answer is False
+**LLM Trả Lời**: The provided evidences discuss software developers and products like OpenSolaris and Jiro, containing no information about planetary order or the Sun, and common sense confirms Mercury is the closest planet, not Jupiter. False
 
 Dưới đây là các Facts (Tripets) trích xuất được từ Milvus + Neo4j để làm ngữ cảnh cho LLM:
 
-- `[brennevinsfjorden] - lake outflow -> [Latitude 89 degrees N]`
-- `[Mai Nakamura (backstroke swimmer)] - participant of -> [swimming at the 2000 summer olympics - women's 100 metre backstroke]`
-- `[underwater (film)] - genre -> [top 100 adventure films]`
+- `[open solaris] - developer -> [sun micro]`
+- `[jiro] - developer -> [sun micro]`
+- `[trusted solaris] - developer -> [sun micro]`
 
 ## Đồ thị ảo (Mermaid Graph)
 *(Bạn có thể ấn nút preview Markdown của VS Code để xem đồ thị này)*
 
 ```mermaid
 graph TD
-    Nf1e3dd48("brennevinsfjorden") -- "lake outflow" --> N6d9c5ff7("Latitude 89 degrees N")
-    N3f721dee("Mai Nakamura (backstroke swimmer)") -- "participant of" --> Na84ee12b("swimming at the 2000 summer olympics - women's 100 metre backstroke")
-    N72a8b1c6("underwater (film)") -- "genre" --> N98c85f97("top 100 adventure films")
+    N9de6d3fa("open solaris") -- "developer" --> N36b36eab("sun micro")
+    Ne97383b1("jiro") -- "developer" --> N36b36eab("sun micro")
+    N6dc727f9("trusted solaris") -- "developer" --> N36b36eab("sun micro")
 ```

@@ -5,6 +5,15 @@ from tqdm import tqdm
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 import os
 
+"""
+HƯỚNG DẪN HOẠT ĐỘNG:
+Cũng giống như Nodes, thuật toán SimGRAG cần phải so khớp phương hướng chui rút DFS của Đồ Thị.
+Do đó thuật toán không đi chệch sang hướng sai, mà nó phải đi vào đúng Hướng Liên Kết Ngữ Nghĩa nhất (Relation).
+File này đọc bảng Danh sách Quan Hệ (VD: 'was born in', 'is located in') -> Vector hoá -> Lưu vào Milvus Collection 2 (WikidataRelations).
+
+Vector lưu ở đây đã được Normalize (Chuẩn hoá thành đơn vị L2) để sau tính Cosine hiệu năng tốt hơn.
+"""
+
 path = "/home/llm/MinhPV/General-Knowledge-Fact-Verification-with-Knowledge-Graphs/Demo_SimGRAG/output/relations.parquet"
 df = pd.read_parquet(path)
 print(f"Tổng số Mối quan hệ (Relations) cần cấu trúc: {len(df)}")

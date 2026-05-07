@@ -1,0 +1,12 @@
+===============================
+Nhận định (Claim): Jupiter is the closest planet to the Sun.
+Ground Truth (GT): False
+===============================
+
+1. LLM TRẢ LỜI:
+The provided evidences discuss software developers and products like OpenSolaris and Jiro, containing no information about planetary order or the Sun, and common sense confirms Mercury is the closest planet, not Jupiter. False
+
+2. CÁC SUBGRAPH/EVIDENCE ĐƯỢC CHỌN VÀ ĐƯA VÀO PROMPT:
+- [open solaris] - developer -> [sun micro]
+- [jiro] - developer -> [sun micro]
+- [trusted solaris] - developer -> [sun micro]

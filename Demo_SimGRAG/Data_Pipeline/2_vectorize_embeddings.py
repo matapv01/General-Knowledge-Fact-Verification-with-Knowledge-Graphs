@@ -10,8 +10,14 @@ import time
 # Lưu ý: Mô hình sẽ được khởi tạo trên từng Worker thay vì trên Driver.
 def embed_text_batch(texts: pd.Series) -> pd.Series:
     """
-    Pandas UDF (User Defined Function): 
-    Spark tự gom các text thành các lô (batch) và gọi hàm này song song.
+    HƯỚNG DẪN HOẠT ĐỘNG (PANDAS UDF - User Defined Function): 
+    Đây là kỹ thuật lập trình song song chia cụm (Batch processing) của PySpark:
+    - Spark thay vì gửi vòng lặp từng dòng 1 (overhead giao tiếp cao), nó sẽ áp dụng Arrow Flight 
+      để gộp nhiều Text lại thành 1 mảng (pd.Series) và bơm qua đây với tốc độ cực nhanh.
+    - Hàm này làm nhiệm vụ gọi API local (Ollama/nomic-embed-text) để biến Cụm Text đó 
+      thành 1 cụm Vector ma trận (768 chiều nhị phân/Float).
+    - Cấu trúc Try/Catch và Chunk_size ở đây được thiết kế để nhét dữ liệu nhịp nhàng vào VRAM GPU 
+      mà không làm server cạn tài nguyên bất chợt sinh lỗi HTTP.
     """
     import requests
     import json

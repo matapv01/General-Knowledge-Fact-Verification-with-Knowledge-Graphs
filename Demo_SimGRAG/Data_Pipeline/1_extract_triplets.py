@@ -12,6 +12,15 @@ def create_spark_session(app_name="Wikidata_Extractor"):
         .getOrCreate()
 
 def process_wikidata5m(entity_path, relation_path, triplet_path, output_dir):
+    """
+    Note:
+    Đây là bước tiền xử lý lõi bằng Apache Spark MapReduce để đối phó với dung lượng dữ liệu quá lớn (OOM RAM).
+    1. Đọc file text raw khổng lồ song song.
+    2. Phase Map: Cắt các dòng thô tách bằng dấu \t thành các Pair RDD (Khóa: ID, Giá trị: Text/Label).
+    3. Phase Reduce / Deduplicate: Rút gọn các Entity và Relation trùng lặp.
+    4. Trộn (Shuffle) dữ liệu Triplets thuần ID thành Head-Relation-Tail hoàn chỉnh với nhãn text.
+    5. Phase Output: Phân mảnh dữ liệu thành file .parquet đóng gói.
+    """
     spark = create_spark_session()
     sc = spark.sparkContext
     

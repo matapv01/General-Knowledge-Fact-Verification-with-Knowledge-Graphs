@@ -54,6 +54,18 @@ docker compose up -d
 
 Sau khi DB đã ở trạng thái Running, chạy script sau để đẩy dữ liệu vào kho:
 ```bash
-uv run Data_Pipeline/3_load_to_db.py --milvus --neo4j
+uv run python Data_Pipeline/3_load_to_db.py --milvus --neo4j
 ```
 *(Hệ thống sử dụng Batch Insert và sinh Index HNSW để tăng tốc độ Import)*
+
+### Bước 4: Embedding các Relation (Mối quan hệ)
+Mã hóa thông tin relation trên đồ thị thành Vector và đẩy lên Milvus collection `WikidataRelations`:
+```bash
+uv run python Data_Pipeline/4_embed_relations.py
+```
+
+### Bước 5: Kiểm tra trạng thái Database
+Liệt kê các Collection hiện có trong Milvus để đảm bảo dữ liệu đã đổ thành công:
+```bash
+uv run python Data_Pipeline/5_list_collections.py
+```

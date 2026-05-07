@@ -4,6 +4,18 @@ from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Colle
 from neo4j import GraphDatabase
 import os
 
+"""
+HƯỚNG DẪN HOẠT ĐỘNG (DUAL-DATABASE LOAD):
+Step này chịu trách nhiệm Load bộ Dataset Parquet đã gia công nhúng vector vào 2 nền tảng vật lý tách biệt:
+
+1. load_to_milvus: Đọc Cột "Vector" do AI nặn ra bơm vào CSDL Vector Milvus.
+   Mục đích là tạo ra trường Index HNSW để sau truy vấn "Barack Obama" sẽ bắn vào Milvus lấy được ID góc (Q76) ngay lập tức.
+   
+2. load_to_neo4j: Đọc các Cạnh cấu trúc (Edges), không cần quan tâm vector. Nó dùng ngôn ngữ Cypher UNWIND
+   đẩy nguyên đống liên kết Head->Relation->Tail vào Neo4j.
+   Mục đích là nối lại rễ đồ thị, để phục vụ cho thuật toán chui sâu DFS Isomorphism ở chặng Retrieval SimGRAG.
+"""
+
 def load_to_milvus(parquet_path):
     print("-----------------------------------------")
     print("🔥 ĐANG KẾT NỐI TỚI MILVUS VECTOR DB...")

@@ -3,6 +3,14 @@ import gdown
 import argparse
 
 def download_google_drive_folder(url, output_dir):
+    """
+    HƯỚNG DẪN HOẠT ĐỘNG:
+    Đây là bước đầu tiên (Bước 0) của Data Pipeline.
+    Mục đích: Kéo (Download) kho dữ liệu thô khổng lồ (Wikidata5m) từ kho lưu trữ đám mây (Google Drive) 
+    xuống ổ cứng cục bộ để chuẩn bị cho quá trình MapReduce.
+    
+    Yêu cầu: Folder Google Drive phải ở chế độ 'Anyone with the link can view' để gdown truy cập được.
+    """
     os.makedirs(output_dir, exist_ok=True)
     print(f"Bắt đầu tải dữ liệu từ Google Drive folder vào: {output_dir}")
     print(f"URL: {url}")
