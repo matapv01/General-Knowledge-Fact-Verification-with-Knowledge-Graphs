@@ -71,10 +71,10 @@ def print_results_from_flags(model_name, is_correct, type_ids):
 
 
 def print_results_from_tags(model_name, is_correct_list, tag_lists):
-    """Print results using raw FactKG type tag lists instead of integer IDs.
+    """Print results by counting every tag in each sample's types list.
 
-    Used by models that iterate over the types list directly (e.g. PGR).
-    A sample can contribute to multiple type buckets if it carries multiple tags.
+    Note: BERT, GEAR, and evaluate_pgr.py use get_type_id() + print_results_from_flags
+    instead (one type per claim, same priority as FactKG GEAR baseline).
 
     is_correct_list : list of booleans
     tag_lists       : list of lists, each inner list is the 'types' field of one sample

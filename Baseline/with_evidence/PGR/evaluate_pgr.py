@@ -8,7 +8,7 @@ SHARED_DIR = Path(__file__).resolve().parents[2] / "shared"
 if str(SHARED_DIR) not in sys.path:
     sys.path.insert(0, str(SHARED_DIR))
 
-from factkg_metrics import print_results_from_tags
+from factkg_metrics import get_type_id, print_results_from_flags
 
 
 def load_qid_to_claim(jsonl_path):
@@ -30,7 +30,7 @@ def evaluate(result_path, test_data_path, jsonl_path):
     qid_to_claim = load_qid_to_claim(jsonl_path)
 
     is_correct_list = []
-    tag_lists       = []
+    type_ids = []
 
     for qid, verdict in results.items():
         if verdict in ("No Program", "Another Answer"):
@@ -38,10 +38,13 @@ def evaluate(result_path, test_data_path, jsonl_path):
         claim = qid_to_claim.get(qid)
         if claim is None or claim not in test_data:
             continue
+        type_id = get_type_id(test_data[claim].get("types", []))
+        if type_id == -1:
+            continue
         is_correct_list.append(verdict == "Correct")
-        tag_lists.append(test_data[claim].get("types", []))
+        type_ids.append(type_id)
 
-    print_results_from_tags("PGR", is_correct_list, tag_lists)
+    print_results_from_flags("PGR", is_correct_list, type_ids)
 
 
 def main():
