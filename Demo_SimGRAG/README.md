@@ -10,12 +10,12 @@ Sử dụng công cụ `uv` siêu tốc để quản lý môi trường:
 cd Demo_SimGRAG
 uv init
 # Cài đặt các package cần thiết
-uv add openai pandas tqdm pymilvus neo4j pyspark
+uv add openai pandas tqdm pymilvus neo4j pyspark requests pyarrow
 ```
 
 ## Chuẩn bị Database & Services
-Hệ thống kết hợp 3 services chính:
-- **Ngôn ngữ (LLM + Embedding)**: Ollama chạy local (Model: `nomic-embed-text` cho embedding và model LLM tùy chọn, cổng `11434`).
+Hệ thống kết hợp 3 khối chính:
+- **Ngôn ngữ (LLM Provider)**: Kết nối qua cấu hình `.env` cho phép linh hoạt sử dụng **Ollama** (Local) hoặc Web API như OpenAI, NVIDIA NIM (VD: `OPENAI_BASE_URL=https://integrate.api.nvidia.com/v1`, Model: `qwen/qwen3.5-122b-a10b`).
 - **Semantic Search (VectorDB)**: Cụm DB **Milvus** (port `19530`).
 - **Graph Search (GraphDB)**: Cụm DB **Neo4j** (port `7476/7689`).
 
@@ -23,9 +23,16 @@ Hệ thống kết hợp 3 services chính:
 ```bash
 docker-compose up -d
 ```
+
+> **Yêu cầu .env:** Cấu hình file `../.env` cho phần Engine LLM trước khi chạy:
+> ```env
+> OPENAI_API_KEY=YOUR_NVIDIA_OR_OPENAI_KEY
+> OPENAI_MODEL=qwen/qwen3.5-122b-a10b
+> OPENAI_BASE_URL=https://integrate.api.nvidia.com/v1
+> ```
 *(Lệnh này sẽ tải và khởi động các container cho Milvus, Neo4j, và ETCD chạy ngầm trên máy)*
 
-> **Yêu cầu LLM:** Đảm bảo Ollama đã được chạy và tải model embedding: `ollama pull nomic-embed-text`
+> **Lưu ý quan trọng về Embedding Model:** Hệ thống sử dụng thư viện `SentenceTransformer` với model `all-mpnet-base-v2` cho toàn bộ quá trình mã hóa (cả Index lẫn lúc Query). Điều này là bắt buộc để duy trì hệ không gian vector (Vector Space) nhất quán, từ đó giữ cho phép tính L2 Distance hoạt động chính xác trong quá trình Subgraph Isomorphism. Tuyệt đối không bật L2 Normalize khi truy vấn nếu lúc Index dữ liệu chưa được Normalize!
 
 ## Chuẩn bị Data Knowledge Graph (ETL Pipeline - Khối lượng rất lớn)
 
@@ -37,30 +44,32 @@ Trường hợp bạn muốn xây dựng Vector/Graph Database từ bộ **Wikid
    ```
 
 2. **MapReduce Trích xuất Triplets (với Apache Spark):**
-   Chạy lệnh để Map dữ liệu thô sang đỉnh/cạnh:
+   Spark đọc song song 3 file raw (entities, relations, triplets), parse và lưu thành Parquet phân vùng:
    ```bash
    uv run python Data_Pipeline/1_extract_triplets.py
    ```
+   *Kết quả: `output/nodes.parquet`, `output/relations.parquet`, `output/edges.parquet`*
 
-3. **Sinh Vector Embeddings Hàng Loạt (Heavy Task):**
-   Tiến trình này mã hóa ~5 triệu đỉnh sang chuẩn n chiều. Do tác vụ rất nặng (yêu cầu GPU chạy trong vài tiếng), hãy xài `nohup` để chống rớt kết nối:
+3. **Sinh Vector Embeddings cho Nodes (Heavy Task):**
+   Spark dùng Pandas UDF chia batch tải model `all-mpnet-base-v2` lên nhiều GPU/Worker để vector hóa ~5 triệu đỉnh. Do tác vụ rất nặng (chạy trong vài tiếng), hãy dùng `nohup` để chống rớt kết nối:
    ```bash
    mkdir -p logs
    nohup uv run python Data_Pipeline/2_vectorize_embeddings.py > logs/vectorization_logs.txt 2>&1 &
    ```
-   *(Theo dõi tiến trình vectorization bằng `tail -f logs/vectorization_logs.txt`)*
+   *(Theo dõi tiến trình bằng `tail -f logs/vectorization_logs.txt`)*
 
-4. **Nạp dữ liệu Batch vào Database (Milvus & Neo4j):**
-   Khi tiến trình 3 xong, load toàn bộ 5 triệu Nodes và hàng chục triệu Edges vào cụm DB:
+4. **Sinh Vector Embeddings cho Relations (Mối quan hệ):**
+   Spark vector hóa bảng relation rồi lưu ra Parquet (cùng pattern với bước 3):
+   ```bash
+   nohup uv run python Data_Pipeline/4_embed_relations.py > logs/relations_logs.txt 2>&1 &
+   ```
+
+5. **Nạp dữ liệu vào Database (Milvus & Neo4j):**
+   Spark đọc Parquet phân tán, nhiều Worker ghi song song vào DB qua `foreachPartition`:
    ```bash
    uv run python Data_Pipeline/3_load_to_db.py --milvus --neo4j
    ```
-
-5. **Embedding các Relation (Mối quan hệ):**
-   Vector hóa thông tin relation trên graph đẩy lên Milvus collection `WikidataRelations`:
-   ```bash
-   uv run python Data_Pipeline/4_embed_relations.py
-   ```
+   *(Tùy chọn nâng cao: `--milvus-host`, `--milvus-port`, `--neo4j-uri`, `--neo4j-user`, `--neo4j-password`)*
 
 6. **Kiểm tra trạng thái Milvus:**
    Liệt kê các Collection hiện có trong Milvus để đảm bảo dữ liệu sẵn sàng:
@@ -101,16 +110,10 @@ Nếu muốn gắn giao diện hoàn chỉnh:
 
 ## Dọn dẹp (Teardown)
 
-Khi không sử dụng nữa, bạn nên tắt các service để giải phóng RAM và CPU:
+Khi không sử dụng nữa, bạn nên tắt các service DB để giải phóng tài nguyên:
 
-1. **Tắt các Database Container (Milvus, Neo4j):**
-   ```bash
-   docker-compose down
-   ```
-
-2. **Dừng Ollama service (nếu chạy nền):**
-   ```bash
-   sudo systemctl stop ollama
-   # Hoặc nếu chạy thủ công qua terminal, tìm PID và kill quá trình:
-   # pkill ollama
-   ```
+**Tắt các Database Container (Milvus, Neo4j, ETCD):**
+```bash
+docker-compose down
+```
+*(Vector model `SentenceTransformer` chỉ chạy trong RAM khi khởi chạy Pyspark/FastAPI, nên khi tắt backend/script là tự động giải phóng).*

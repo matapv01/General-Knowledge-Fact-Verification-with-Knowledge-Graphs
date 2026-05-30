@@ -4,6 +4,8 @@ from pyspark.sql.types import StructType, StructField, StringType
 
 def create_spark_session(app_name="Wikidata_Extractor"):
     # Khởi tạo Spark Session với cấu hình phù hợp với RAM
+    # master("local[*]"): Dấu * chỉ định Spark đẻ ra số lượng Worker Threads song song 
+    # đúng bằng tổng số luồng (cpu cores) hiện có trên máy tính để chạy MapReduce.
     return SparkSession.builder \
         .appName(app_name) \
         .master("local[*]") \

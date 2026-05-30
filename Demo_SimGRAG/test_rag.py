@@ -32,7 +32,7 @@ def test():
         print(f"{i}. {c['claim']} (GT: {c['gt']})")
         
     try:
-        choice = int(input("\nNhập số (1-10): "))
+        choice = 4
         if 1 <= choice <= 10:
             selected_claim = claims[choice - 1]
         else:

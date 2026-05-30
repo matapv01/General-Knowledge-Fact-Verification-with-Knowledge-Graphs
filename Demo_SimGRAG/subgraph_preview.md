@@ -1,23 +1,23 @@
 # Subgraph Extraction Preview
 
-**Claim**: Jupiter is the closest planet to the Sun.
+**Claim**: Microsoft was founded by Bill Gates.
 
-**Ground Truth**: False
+**Ground Truth**: True
 
-**LLM Trả Lời**: The provided evidences discuss software developers and products like OpenSolaris and Jiro, containing no information about planetary order or the Sun, and common sense confirms Mercury is the closest planet, not Jupiter. False
+**LLM Trả Lời**: As the provided graphs mention Bill Gates as CEO of Microsoft logos or cast member of Revolution OS but do not state he founded Microsoft, the answer is False
 
 Dưới đây là các Facts (Tripets) trích xuất được từ Milvus + Neo4j để làm ngữ cảnh cho LLM:
 
-- `[open solaris] - developer -> [sun micro]`
-- `[jiro] - developer -> [sun micro]`
-- `[trusted solaris] - developer -> [sun micro]`
+- `[microsoft logos] - chief executive officer -> [william h. gates]`
+- `[next computer, inc.] - chief executive officer -> [Mr. Steve Jobs]`
+- `[Revolution OS] - cast member -> [william h. gates]`
 
 ## Đồ thị ảo (Mermaid Graph)
 *(Bạn có thể ấn nút preview Markdown của VS Code để xem đồ thị này)*
 
 ```mermaid
 graph TD
-    N9de6d3fa("open solaris") -- "developer" --> N36b36eab("sun micro")
-    Ne97383b1("jiro") -- "developer" --> N36b36eab("sun micro")
-    N6dc727f9("trusted solaris") -- "developer" --> N36b36eab("sun micro")
+    Nf0125cee("microsoft logos") -- "chief executive officer" --> Nc2a0851e("william h. gates")
+    Necd62398("next computer, inc.") -- "chief executive officer" --> N7d30d359("Mr. Steve Jobs")
+    N7319f783("Revolution OS") -- "cast member" --> Nc2a0851e("william h. gates")
 ```
