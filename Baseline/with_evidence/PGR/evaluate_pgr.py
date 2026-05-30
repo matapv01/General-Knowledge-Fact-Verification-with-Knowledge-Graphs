@@ -33,7 +33,7 @@ def evaluate(result_path, test_data_path, jsonl_path):
     type_ids = []
 
     for qid, verdict in results.items():
-        if verdict in ("No Program", "Another Answer"):
+        if verdict == "No Program":
             continue
         claim = qid_to_claim.get(qid)
         if claim is None or claim not in test_data:
