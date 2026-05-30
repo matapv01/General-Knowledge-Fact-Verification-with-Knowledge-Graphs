@@ -1,0 +1,10 @@
+data/
+cache/
+outputs/
+openai_api_key.txt
+__pycache__/
+*.pyc
+*.pt
+.env
+.vscode/
+kkg_work/

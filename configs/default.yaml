@@ -1,0 +1,42 @@
+# ============================================================================
+# KernelKG-GPT default config
+# Stage 1+2 = KG-GPT LLM retrieval, Stage 3 = KernelGAT-style kernel reasoning
+# Pure combination — no extensions beyond what's in the two original papers.
+# ============================================================================
+
+# --- Data (Stage 1+2 cached outputs) ----------------------------------------
+train_cache: cache/stage12_train.pt
+dev_cache:   cache/stage12_dev.pt
+test_cache:  cache/stage12_test.pt
+
+# --- Model (mirrors KernelGAT defaults) -------------------------------------
+model_type: kernel      # kernel | concat_baseline (fair supervised baseline)
+bert_model: bert-base-uncased
+num_kernels: 21
+num_labels: 2           # FactKG = True / False
+dropout: 0.1
+
+# --- Graph / sequence shape -------------------------------------------------
+max_seq_len: 96         # triples are shorter than FEVER sentences
+max_nodes: 10           # KG-GPT typically retrieves 5-30 candidate triples
+triple_format: plain    # plain | separators  ("plain" = "head rel tail")
+
+# --- Training (mirrors KernelGAT) -------------------------------------------
+batch_size: 4
+eval_batch_size: 16
+gradient_accumulation: 8
+learning_rate: 5.0e-5
+weight_decay: 0.01
+num_epochs: 5
+warmup_ratio: 0.1
+early_stopping_patience: 3
+num_workers: 0
+
+# --- Stage 1+2 (informational, used by scripts/01_run_stage12.py) -----------
+llm_model: gpt-3.5-turbo-0613
+top_k: 5
+max_triples: 30
+
+# --- Output -----------------------------------------------------------------
+output_dir: outputs/exp1
+seed: 42
