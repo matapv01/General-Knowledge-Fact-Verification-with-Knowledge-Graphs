@@ -1,6 +1,6 @@
 import numpy as np
 
-from .reasoning import TABLE_ORDER, TYPE_NAMES
+from .reasoning import TABLE_ORDER
 
 
 def print_results(model_name, labels, preds, type_ids):
@@ -67,46 +67,4 @@ def print_results_from_flags(model_name, is_correct, type_ids):
     total_correct = int(is_correct.sum())
     total         = len(is_correct)
     print(f"{'Overall':<16}  {total_correct/total:>9.2%}  {total_correct:>6} / {total:<6}")
-    print()
-
-
-def print_results_from_tags(model_name, is_correct_list, tag_lists):
-    """Print results by counting every tag in each sample's types list.
-
-    Note: BERT, GEAR, and evaluate_pgr.py use get_type_id() + print_results_from_flags
-    instead (one type per claim, same priority as FactKG GEAR baseline).
-
-    is_correct_list : list of booleans
-    tag_lists       : list of lists, each inner list is the 'types' field of one sample
-    """
-    correct_by_name = {name: 0 for name in TYPE_NAMES.values()}
-    total_by_name   = {name: 0 for name in TYPE_NAMES.values()}
-
-    for is_correct, tags in zip(is_correct_list, tag_lists):
-        for tag in tags:
-            if tag in TYPE_NAMES:
-                name = TYPE_NAMES[tag]
-                total_by_name[name] += 1
-                if is_correct:
-                    correct_by_name[name] += 1
-
-    print()
-    print(f"Results on FactKG test set  [{model_name}]")
-    print()
-    print(f"{'Reasoning Type':<16}  {'Accuracy':>10}  {'Correct / Total':>15}")
-    print("-" * 46)
-
-    for _, type_name in TABLE_ORDER:
-        correct = correct_by_name[type_name]
-        total   = total_by_name[type_name]
-        if total > 0:
-            print(f"{type_name:<16}  {correct/total:>9.2%}  {correct:>6} / {total:<6}")
-        else:
-            print(f"{type_name:<16}  {'—':>10}  {'—':>15}")
-
-    print("-" * 46)
-    total_correct = sum(is_correct_list)
-    total         = len(is_correct_list)
-    overall_acc   = total_correct / total if total > 0 else 0
-    print(f"{'Overall':<16}  {overall_acc:>9.2%}  {total_correct:>6} / {total:<6}")
     print()
