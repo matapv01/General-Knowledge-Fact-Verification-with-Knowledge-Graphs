@@ -1,15 +1,33 @@
-import torch
+from __future__ import annotations
+
 import argparse
+import os
 import pickle as pkl
-from itertools import chain
+import sys
 from dataclasses import dataclass
-from tqdm import trange, tqdm
+from itertools import chain
+from pathlib import Path
 from random import choices
+
+import torch
 import torch.nn as nn
 from termcolor import colored
-from transformers import BertModel, AutoModel, AutoTokenizer, PreTrainedTokenizerBase, AutoConfig, AutoModel
+from tqdm import tqdm
+from transformers import (
+    AutoConfig,
+    AutoModel,
+    AutoTokenizer,
+    BertModel,
+    PreTrainedTokenizerBase,
+)
+
 from preprocess import prepare_input
-import os
+
+_SHARED = Path(__file__).resolve().parents[3] / "shared"
+if str(_SHARED) not in sys.path:
+    sys.path.insert(0, str(_SHARED))
+
+from factkg_metrics import get_type_id, print_results_from_flags
 
 
 parser = argparse.ArgumentParser()
@@ -55,18 +73,9 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, i):
 
         if self.split == "test":
-            if "negation" in self.types[i]:
-                rtype = 4
-            elif "num1" in self.types[i]:
-                rtype = 0
-            elif "multi hop" in self.types[i]:
-                rtype = 1
-            elif "multi claim" in self.types[i]:
-                rtype = 2
-            elif "existence" in self.types[i]:
-                rtype = 3
-            else:
-                raise ValueError()
+            rtype = get_type_id(self.types[i])
+            if rtype == -1:
+                raise ValueError(f"No known reasoning type in: {self.types[i]}")
 
             sample = {
                 "e":(" | ".join([",".join(c) for c in self.evis[i][0]]), " | ".join([",".join(c) for c in self.evis[i][1]])),
@@ -390,13 +399,10 @@ with torch.no_grad():
         rtypes.append(rtype)
     total_score = torch.cat(scores).float()
     total_rtype = torch.cat(rtypes)
-    for rt in total_rtype.unique():
-        idcs = total_rtype==rt
-        print(f"-- # examples in {rt.item()}: {idcs.sum().item()} --")
-        print(f"Acc for type {colored(str(rt.item()), 'yellow')}: {total_score[idcs.cpu()].mean().item():.4f}")
 
-    accuracy = f"{torch.cat(scores).float().mean().item():.4f}"
-    print(f"Total Test Acc: {colored(accuracy, 'green')}") 
+    is_correct = total_score.bool().cpu().numpy()
+    type_ids   = total_rtype.cpu().numpy()
+    print_results_from_flags("GEAR", is_correct, type_ids)
 
 with open('./test_pred.bin', "wb") as pkf:
     result = {
