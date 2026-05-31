@@ -4,7 +4,7 @@
 
 **Ground Truth**: True
 
-**LLM Trả Lời**: As the provided graphs mention Bill Gates as CEO of Microsoft logos or cast member of Revolution OS but do not state he founded Microsoft, the answer is False
+**LLM Trả Lời**: As the evidences show Bill Gates as CEO and cast member but not explicitly as the founder, the answer is False
 
 Dưới đây là các Facts (Tripets) trích xuất được từ Milvus + Neo4j để làm ngữ cảnh cho LLM:
 
